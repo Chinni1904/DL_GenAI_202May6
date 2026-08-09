@@ -1,11 +1,9 @@
 import streamlit as st
 import torch
 import torch.nn.functional as F
+import pandas as pd
 
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
+from model import load_model
 
 # -----------------------------
 # Page Configuration
@@ -17,28 +15,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -------------------------------
-# Load Model
-# -------------------------------
+# Load model 
+with st.spinner("Loading AI model..."): 
+    tokenizer, model = load_model() 
 
-MODEL_PATH = "model"
-
-@st.cache_resource
-def load_model():
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_PATH
-    )
-
-    model.eval()
-
-    return tokenizer, model
-
-
-tokenizer, model = load_model()
-
+#Answer labels 
 labels = ["A", "B", "C", "D", "E"]
 
 # ------------------------------------
@@ -46,6 +27,8 @@ labels = ["A", "B", "C", "D", "E"]
 # ------------------------------------
 
 def predict_top3(question, options):
+
+    labels = ["A", "B", "C", "D", "E"]
 
     scores = []
 
@@ -56,38 +39,26 @@ def predict_top3(question, options):
             text = question + " </s> " + option
 
             inputs = tokenizer(
-
                 text,
-
                 return_tensors="pt",
-
                 truncation=True,
-
                 padding=True,
-
                 max_length=256
-
             )
 
             outputs = model(**inputs)
 
-            logits = outputs.logits
-
             probability = F.softmax(
-                logits,
+                outputs.logits,
                 dim=1
             )[0][1].item()
 
             scores.append(probability)
 
     ranking = sorted(
-
         zip(labels, scores),
-
         key=lambda x: x[1],
-
         reverse=True
-
     )
 
     return ranking

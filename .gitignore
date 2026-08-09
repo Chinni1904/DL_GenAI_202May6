@@ -1,5 +1,15 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# ML model files
+model/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Python cache
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-.env
-.venv/
